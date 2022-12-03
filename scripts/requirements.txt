@@ -1,0 +1,10 @@
+jupyterlab
+selenium
+webdriver-manager
+pydantic
+selenium-stealth
+redis-om
+redis
+typer
+schedule
+rich
