@@ -41,8 +41,8 @@ def run_threaded(job_func):
     job_thread.start()
     
 
-schedule.every(15).to(30).minutes.do(run_threaded, betano)
-schedule.every(15).to(30).minutes.do(run_threaded, betway)
+schedule.every(15).to(20).minutes.do(run_threaded, betano)
+schedule.every(10).to(15).minutes.do(run_threaded, betway)
 schedule.every(60).seconds.do(run_threaded, job)
 
 while 1:

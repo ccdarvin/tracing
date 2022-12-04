@@ -9,7 +9,7 @@ from rich import print
 def scraping_games():
     driver = init_driver()
     url = 'https://betway.com/es/sports/ctl/soccer'
-    driver.get()
+    driver.get(url)
     sleep(20)
     print(f'🔗 {url}')
     
