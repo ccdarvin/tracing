@@ -10,7 +10,6 @@ redis_conn = redis.Redis(
 )
 
 
-
 class Game(JsonModel):
     url: Optional[str] = Field(index=True, primary_key=True)
     site: Optional[str] = Field(index=True)
