@@ -8,3 +8,5 @@ redis
 typer
 schedule
 rich
+sentry-sdk
+rq
