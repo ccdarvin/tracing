@@ -1,8 +1,9 @@
 from selenium.webdriver.common.by import By
 from core.webdriver import init_driver
+from redis_om import Migrator
 from core.models import Game
-from time import sleep
 from random import randint
+from time import sleep
 
 
 def page_data(page_url, driver):
@@ -19,7 +20,7 @@ def page_data(page_url, driver):
         )
         game.save()
         game.expire(60*60*24)
-        print(f'✅ {game.__dict__}')
+        logging.info(f'✅ {game.__dict__}')
         
         
 def scraping_games():
@@ -27,10 +28,14 @@ def scraping_games():
     url = 'https://pe.betano.com/sport/futbol/'
     driver.get(url)
     sleep(2)
-    print(f'🔗 {url}')
-    driver.save_screenshot('games_betano.png')
+    logging.info(f'🔗 {url}')
     urls = [elm.get_attribute('href') for elm in driver.find_elements(By.CSS_SELECTOR, '.sb-checkbox__link sb-checkbox__link__section')]
     
     for url in urls:
-        print(f'🔗 {url}')
+        logging.info(f'🔗 {url}')
         page_data(url)
+    Migrator().run()
+    # close driver
+    sleep(5)
+    driver.close()
+    driver.quit()

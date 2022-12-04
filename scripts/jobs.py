@@ -32,7 +32,6 @@ sentry_sdk.init(
 
 
 def job():
-    logging.info("I am working...")
     print('I am working...')
     
 

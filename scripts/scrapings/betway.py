@@ -5,13 +5,14 @@ from redis_om import Migrator
 from core.models import Game
 from time import sleep
 from rich import print
+import logging
 
 def scraping_games():
     driver = init_driver()
     url = 'https://betway.com/es/sports/ctl/soccer'
     driver.get(url)
     sleep(20)
-    print(f'🔗 {url}')
+    logging.info(f'🔗 {url}')
     
     for elm in driver.find_elements(By.CSS_SELECTOR, '.collapsablePanel'):
         try:
@@ -42,7 +43,7 @@ def scraping_games():
         )
         game.save()
         game.expire(60*60*24)
-        print(f'✅ {game.__dict__}')
+        logging.info(f'✅ {game.__dict__}')
         
     Migrator().run()
     # close driver
