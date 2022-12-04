@@ -5,9 +5,10 @@ from selenium_stealth import stealth
 from selenium import webdriver
 
 
-def init_driver():
+def init_driver(headless=True):
     options = Options()
-    options.add_argument('--headless')
+    if headless:
+        options.add_argument('--headless')
     options.add_argument('start-maximized')
     options.add_argument('--window-size=1920,1080')
     options.add_experimental_option('excludeSwitches', ['enable-automation'])

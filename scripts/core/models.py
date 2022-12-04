@@ -1,5 +1,5 @@
 from redis_om import Field, Migrator, JsonModel
-from pydantic import HttpUrl
+from datetime import datetime, timezone
 from  typing import Optional
 import redis
 
@@ -18,6 +18,7 @@ class Game(JsonModel):
     game: Optional[str] = Field(index=True, full_text_search=True, default='')
     firstTeam: Optional[str] = Field(index=True, full_text_search=True, default='')
     secoundTeam: Optional[str] = Field(index=True, full_text_search=True, default='')
+    lastUpdate: datetime = Field(default=datetime.now(timezone.utc))
     
     class Meta:
         database = r

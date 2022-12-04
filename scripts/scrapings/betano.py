@@ -18,18 +18,18 @@ def page_data(page_url, driver):
             game= ' vs '.join(text),
         )
         game.save()
-        game.expire(60*60*24*60)
+        game.expire(60*60*24)
         print(f'✅ {game.__dict__}')
         
         
 def scraping_games():
     driver = init_driver()
     url = 'https://pe.betano.com/sport/futbol/'
-    driver.get('https://pe.betano.com/sport/futbol/')
+    driver.get(url)
     sleep(2)
     print(f'🔗 {url}')
     driver.save_screenshot('games_betano.png')
-    urls = [elm.get_attribute('href') for elm in driver.find_elements(By.CSS_SELECTOR, 'a.sb-checkbox__link')]
+    urls = [elm.get_attribute('href') for elm in driver.find_elements(By.CSS_SELECTOR, '.sb-checkbox__link sb-checkbox__link__section')]
     
     for url in urls:
         print(f'🔗 {url}')
