@@ -1,13 +1,7 @@
-from redis_om import Field, Migrator, JsonModel
-from datetime import datetime, timezone
+from .conn import redis_conn
+from redis_om import Field, JsonModel
 from  typing import Optional
-import redis
-
-redis_conn = redis.Redis(
-    host='redis-12622.c277.us-east-1-3.ec2.cloud.redislabs.com',
-    port=12622,
-    password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa'
-)
+from datetime import datetime, timezone
 
 
 class Game(JsonModel):
@@ -18,10 +12,8 @@ class Game(JsonModel):
     firstTeam: Optional[str] = Field(index=True, full_text_search=True, default='')
     secoundTeam: Optional[str] = Field(index=True, full_text_search=True, default='')
     lastUpdate: datetime = Field(default=datetime.now(timezone.utc))
-    scraping: bool = Field(default=False)
     
     class Meta:
         database = redis_conn
         global_key_prefix = 'tracker'
         model_key_prefix = 'games'
-        

@@ -10,3 +10,4 @@ schedule
 rich
 sentry-sdk
 rq
+typer[all]

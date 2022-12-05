@@ -1,0 +1,14 @@
+fastapi==0.88.*
+websockets==10.4.*
+uvicorn[standard]==0.19.*
+odmantic==0.9.*
+pydantic[email,dotenv]==1.10.2
+passlib[bcrypt]==1.7.*
+requests==2.28.*
+pytest==7.1.*
+faker==15.1.*
+httpx==0.23.*
+python-jose[cryptography]==3.3.*
+pyhumps==3.8.*
+redis
+redis_om
