@@ -1,6 +1,7 @@
 fastapi==0.88.*
 websockets==10.4.*
 uvicorn[standard]==0.19.*
+gunicorn
 odmantic==0.9.*
 pydantic[email,dotenv]==1.10.2
 passlib[bcrypt]==1.7.*
