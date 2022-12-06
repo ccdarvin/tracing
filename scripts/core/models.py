@@ -1,27 +1,62 @@
-from redis_om import Field, Migrator, JsonModel
+from redis.commands.search.field import TextField
+from redis.commands.json.path import Path
 from datetime import datetime, timezone
+from pydantic import BaseModel
 from  typing import Optional
 import redis
 
-redis_conn = redis.Redis(
+
+r = redis.Redis(
     host='redis-12622.c277.us-east-1-3.ec2.cloud.redislabs.com',
     port=12622,
     password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa'
 )
 
 
-class Game(JsonModel):
-    url: Optional[str] = Field(index=True, primary_key=True)
-    site: Optional[str] = Field(index=True)
-    sport: Optional[str] = Field(index=True)
-    game: Optional[str] = Field(index=True, full_text_search=True, default='')
-    firstTeam: Optional[str] = Field(index=True, full_text_search=True, default='')
-    secoundTeam: Optional[str] = Field(index=True, full_text_search=True, default='')
-    lastUpdate: datetime = Field(default=datetime.now(timezone.utc))
-    scraping: bool = Field(default=False)
+class RedisModel(BaseModel):
     
-    class Meta:
-        database = redis_conn
-        global_key_prefix = 'tracker'
-        model_key_prefix = 'games'
+    def key(self):
+        return NotImplemented
+
+
+class Website(RedisModel):
+    id: str
+    name: Optional[str]
+    url: Optional[str]
+    scraping: Optional[bool] = False
+    
+    def key(self):
+        return f'websites:{self.id}'
+
+
+class Page(RedisModel):
+    id: str
+    site: Optional[str]
+    sport: Optional[str]
+    game: Optional[str]
+    firstTeam: Optional[str]
+    secoundTeam: Optional[str]
+    lastUpdate: datetime = datetime.now(timezone.utc)
+    scraping: bool = False
+    
+    def key(self):
+        return f'pages:{self.site}:{self.id}'
+    
+
+
+def save(model: RedisModel):
+    key = model.key()
+    if r.exists(key):
+        for field, value in model.dict(exclude_unset=True).items():
+            r.json().set(key, f'.{field}', value)
+    else:
+        r.json().set(key, Path.root_path(), model.dict())
+
+
+def delete(model: RedisModel):
+    key = model.key()
+    if r.exists(key):
+        r.json().delete(key)
         
+def exists(model: RedisModel):
+    return r.exists(model.key()) == 1

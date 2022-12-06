@@ -2,10 +2,10 @@ from redis_om import Migrator, NotFoundError
 from selenium.webdriver.common.by import By
 from datetime import datetime, timezone
 from core.webdriver import init_driver
-from core.models import Game
 from random import randint
 from time import sleep
 import logging
+
 
 def page_data(page_url, driver):
     driver.get(page_url)
@@ -29,7 +29,7 @@ def page_data(page_url, driver):
         logging.info(f'✅ {game.__dict__}')
         
         
-def scraping_games():
+async def scraping_games():
     driver = init_driver()
     url = 'https://pe.betano.com/sport/futbol/'
     driver.get(url)

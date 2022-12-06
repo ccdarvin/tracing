@@ -1,15 +1,15 @@
-from redis_om import Migrator, NotFoundError
 from selenium.webdriver.common.by import By
 from datetime import datetime, timezone
 from core.webdriver import init_driver
 from core.utils import scroll_down
-from core.models import Game
+from core.models import Website, save, exists
+from core.utils import send_message_website
 from time import sleep
 import logging
 
 
 
-def page_data(page_url, driver):
+def get_pages(page_url, driver):
     driver.get(page_url)
     logging.info(f'🔗 {page_url}')
     sleep(20)
@@ -52,7 +52,7 @@ def page_data(page_url, driver):
         logging.info(f'✅ {game.__dict__}')
 
 
-def scraping_games():
+def scraping():
     driver = init_driver()
     urls = [
         'https://betway.com/es/sports/ctl/soccer',
@@ -62,10 +62,27 @@ def scraping_games():
         'https://betway.com/es/sports/cpn/soccer/291',
     ]
     for url in urls:
-        page_data(url, driver)
+        pass
+        #page_data(url, driver)
      
-    Migrator().run()
     # close driver
-    sleep(5)
+    sleep(10)
     driver.close()
     driver.quit()
+    
+    
+    
+    
+async def main():
+    website = Website(id='betway.com', scraping=True)
+    save(website)
+    await send_message_website(website)
+    try:
+        scraping()
+    except Exception as e:
+        logging.exception(e)
+    finally:
+        website = Website(id='betway.com', scraping=False)
+        save(website)
+        await send_message_website(website)
+

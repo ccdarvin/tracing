@@ -3,11 +3,11 @@ selenium
 webdriver-manager
 pydantic
 selenium-stealth
-redis-om
-redis
+redis-om==0.1.0
+redis==4.4.0
 typer
 schedule
 rich
 sentry-sdk
-rq
 typer[all]
+websockets

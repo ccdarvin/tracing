@@ -1,9 +1,26 @@
-from typing import List
-
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from app.website import router as website_router
 from fastapi.responses import HTMLResponse
+from typing import List
+import redis
+
 
 app = FastAPI()
+app.include_router(website_router, tags=['website'])
+app.state.redis = redis.Redis(
+    host='redis-12622.c277.us-east-1-3.ec2.cloud.redislabs.com',
+    port=12622,
+    password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins='*',
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 
 html = """
 <!DOCTYPE html>
@@ -23,7 +40,7 @@ html = """
         <script>
             var client_id = Date.now()
             document.querySelector("#ws-id").textContent = client_id;
-            var ws = new WebSocket(`ws://localhost:8000/ws/${client_id}`);
+            var ws = new WebSocket(`ws://127.0.0.1:8000/websites`);
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
@@ -71,7 +88,7 @@ async def get():
 
 
 @app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: int):
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
     await manager.connect(websocket)
     try:
         while True:
