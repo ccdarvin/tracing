@@ -56,8 +56,6 @@ def websites(betway: bool=False, betano: bool=False):
         finally:
             ws.send(json.dumps({'id': 'betway.com', 'scraping': False}))
             print('secound', ws.recv())
-    
-    ws.close()
     #if betano:
     #    await betano_scraping()
     #asyncio.run(main())

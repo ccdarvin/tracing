@@ -64,9 +64,9 @@ async def website_ws(websocket: WebSocket):
                 await manager.broadcast(model.dict(exclude_unset=True))
                 await manager.send_personal_message({'status': 'ok'}, websocket)
             
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, RuntimeError):
         manager.disconnect(websocket)
-        await manager.broadcast({'message': 'Client left the chat'})
+        #await manager.broadcast({'message': 'Client left the chat'})
 
 
 @router.get('/websites')
