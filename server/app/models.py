@@ -17,6 +17,7 @@ class Website(RedisModel):
     name: Optional[str]
     url: Optional[str]
     scraping: Optional[bool] = False
+    lastUpdate: Optional[datetime]
     
     def key(self):
         return f'websites:{self.id}'
@@ -29,7 +30,6 @@ class Page(RedisModel):
     game: Optional[str]
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
-    lastUpdate: datetime = datetime.now(timezone.utc)
     scraping: bool = False
     
     def key(self):

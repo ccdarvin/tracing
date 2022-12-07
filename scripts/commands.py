@@ -1,10 +1,10 @@
 from sentry_sdk.integrations.logging import LoggingIntegration
 #from scrapings.betano import scraping_games as betano_scraping
 from scrapings.betway import scraping as betway_scraping
+from datetime import datetime, timezone
 from core.config import get_settings
 import sentry_sdk
 import websocket
-import asyncio
 import logging
 import typer
 import json
@@ -39,23 +39,31 @@ sentry_sdk.init(
 app = typer.Typer()
 settings = get_settings()
 
+def on_message(ws, message):
+    print(message)
+
+def on_error(ws, error):
+    print(error)
+
+def on_close(ws, close_status_code, close_msg):
+    print("### closed ###")
+
+def on_open(ws):
+    print("Opened connection")
+
 
 @app.command()
 def websites(betway: bool=False, betano: bool=False):
-    ws = websocket.WebSocket()
     uri = f'{settings.WS}/websites'
-    ws.connect(uri)
+    ws = websocket.WebSocket()
     if betway:
-        ws.send(json.dumps({'id': 'betway.com', 'scraping': True}))
-        print(ws.recv())
+        ws.connect(f'{uri}?scraping=betway.com')
         try:
             betway_scraping()
         except Exception as e:
-            ws.send(json.dumps({'id': 'betway.com', 'scraping': False}))
             raise e
-        finally:
-            ws.send(json.dumps({'id': 'betway.com', 'scraping': False}))
-            print('secound', ws.recv())
+            
+        
     #if betano:
     #    await betano_scraping()
     #asyncio.run(main())

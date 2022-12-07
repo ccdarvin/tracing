@@ -8,6 +8,17 @@ import json
 router = APIRouter()
 
 
+async def website_scraping(websocket: WebSocket, scraping: bool):
+    try:
+        id=websocket.query_params['scraping']
+    except KeyError:
+        print('No scraping')
+    else:
+        website = Website(id=id, scraping=scraping)
+        await save(websocket.app.state.redis, website)
+        await manager.broadcast({'id': id, 'scraping': scraping})
+        print(f'Website {id} scraping: {scraping}')
+
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
@@ -15,9 +26,11 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
+        await website_scraping(websocket, True)
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
+        await website_scraping(websocket, False)
 
     async def send_personal_message(self, message: str|dict, websocket: WebSocket):
         if isinstance(message, dict):
@@ -27,6 +40,7 @@ class ConnectionManager:
 
     async def broadcast(self, message: str|dict):
         for connection in self.active_connections:
+            print(connection.client_state)
             if isinstance(message, dict):
                 await connection.send_json(message)
             else:
@@ -36,6 +50,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+    
 
 @router.websocket("/websites")
 async def website_ws(websocket: WebSocket):
@@ -61,12 +76,11 @@ async def website_ws(websocket: WebSocket):
                 continue
             else:
                 await save(r, model)
+                websocket.state.model = model
                 await manager.broadcast(model.dict(exclude_unset=True))
-                await manager.send_personal_message({'status': 'ok'}, websocket)
             
-    except (WebSocketDisconnect, RuntimeError):
-        manager.disconnect(websocket)
-        #await manager.broadcast({'message': 'Client left the chat'})
+    except WebSocketDisconnect:
+        await manager.disconnect(websocket)
 
 
 @router.get('/websites')
