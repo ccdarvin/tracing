@@ -1,7 +1,7 @@
 'use client'
 
 import { WEBSITE_API, WEBSITE_WS } from '../../../hooks/atoms'
-import { Skeleton, List, Alert, Avatar, Tag } from 'antd'  
+import { Skeleton, List, Alert, Avatar, Tag, Badge } from 'antd'  
 import { MinusCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export default function Page () {
   const queryClient = useQueryClient()
-  const { data: websites, isLoading, isError } = useQuery({
+  const { data: websites, isLoading, isError, refetch } = useQuery({
     // @ts-ignore
     queryKey: [WEBSITE_API],
     queryFn: async () => {
@@ -18,13 +18,18 @@ export default function Page () {
       return res.json()
     },
   })
+  
+  const [connected, setConnected] = useState(false)
+
   useEffect(() => {
     const ws = new WebSocket(WEBSITE_WS)
     ws.onopen = () => {
       console.log('connected')
+      setConnected(true)
     }
     ws.onclose = () => {
       console.log('disconnected')
+      setConnected(false)
     }
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
@@ -38,17 +43,26 @@ export default function Page () {
         })
       })
     }
+    ws.onerror = (event) => {
+      console.log('error', event)
+      refetch()
+    }
     return () => {
       if (ws.readyState == WebSocket.OPEN) {
         ws.close()
       }
     }
-  }, [queryClient])
+  }, [connected])
 
 
   return <div className="flex justify-center items-center">
     <div className="w-96">
-      <h1 className="text-xl font-bold py-8">Sitio Web que se estan procesando</h1>
+      <Badge.Ribbon 
+        text={connected ? 'Conectado' : 'Desconectado'}
+        color={connected? 'green': 'red'}
+      >
+        <h1 className="text-xl font-bold py-8">Sitio Web que se estan procesando</h1>
+      </Badge.Ribbon>
       { isError && <Alert message="Error" type="error" /> }
       { isLoading ? <Skeleton active />:
         <List 
