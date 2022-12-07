@@ -29,7 +29,7 @@ def test_website_ws_invalid_data():
 def test_website_ws_valid_data():
     with client.websocket_connect("/websites") as websocket:
         # Json valid
-        websocket.send_text('{"name": "https://www.google.com", "id": "google.com"}')
+        websocket.send_text('{"name": "https://www.google.com", "id": "google.com", "scraping": "false"}')
         data = websocket.receive_json()
         assert data['status'] == 'ok'
         data = websocket.receive_json()
