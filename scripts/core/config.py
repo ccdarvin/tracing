@@ -3,7 +3,8 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    API: str = "http://localhost:8000"
+    API: str = "https://plankton-app-5rfza.ondigitalocean.app"
+    WS: str = "wss://plankton-app-5rfza.ondigitalocean.app"
     
     
     

@@ -3,16 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.website import router as website_router
 from fastapi.responses import HTMLResponse
 from typing import List
-import redis
+import redis.asyncio as redis
 
 
 app = FastAPI()
 app.include_router(website_router, tags=['website'])
-app.state.redis = redis.Redis(
-    host='redis-12622.c277.us-east-1-3.ec2.cloud.redislabs.com',
-    port=12622,
-    password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
-)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins='*',
@@ -20,6 +16,19 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+
+@app.on_event('startup')
+async def startup():
+    app.state.redis = redis.Redis(
+        host='redis-12622.c277.us-east-1-3.ec2.cloud.redislabs.com',
+        port=12622,
+        password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
+    )
+    
+@app.on_event('shutdown')
+async def shutdown():
+    await app.state.redis.close()
 
 
 html = """

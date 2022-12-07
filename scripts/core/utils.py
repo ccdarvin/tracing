@@ -2,8 +2,11 @@ from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from .models import Website
+from .config import get_settings
 import websockets
-import json
+
+
+settings = get_settings()
 
 
 def scroll_down(driver, selector, amount=10):
@@ -15,7 +18,7 @@ def scroll_down(driver, selector, amount=10):
             
             
 async def send_message_website(website: Website):
-    uri = 'ws://127.0.0.1:8000/api/websites/ws'
+    uri = f'{settings.WS}/websites'
     await send_message(uri, website.json(exclude_unset=True))
 
 

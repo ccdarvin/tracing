@@ -12,4 +12,4 @@ httpx==0.23.*
 python-jose[cryptography]==3.3.*
 pyhumps==3.8.*
 redis
-redis_om
+pytest
