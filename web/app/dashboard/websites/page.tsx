@@ -23,8 +23,12 @@ export default function Page () {
     ws.onopen = () => {
       console.log('connected')
     }
+    ws.onclose = () => {
+      console.log('disconnected')
+    }
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
+      console.log(data)
       queryClient.setQueryData([WEBSITE_API], (oldData: any) => {
         return oldData.map((website: any) => {
           if (website.id === data.id) {
