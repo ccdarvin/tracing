@@ -2,8 +2,6 @@ from selenium.webdriver.common.by import By
 from datetime import datetime, timezone
 from core.webdriver import init_driver
 from core.utils import scroll_down
-from core.models import Website, save, exists
-from core.utils import send_message_website
 from time import sleep
 import logging
 
@@ -66,23 +64,8 @@ def scraping():
         #page_data(url, driver)
      
     # close driver
-    sleep(10)
+    sleep(20)
     driver.close()
     driver.quit()
     
-    
-    
-    
-async def main():
-    website = Website(id='betway.com', scraping=True)
-    save(website)
-    await send_message_website(website)
-    try:
-        scraping()
-    except Exception as e:
-        logging.exception(e)
-    finally:
-        website = Website(id='betway.com', scraping=False)
-        save(website)
-        await send_message_website(website)
 

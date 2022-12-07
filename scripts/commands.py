@@ -1,10 +1,14 @@
 from sentry_sdk.integrations.logging import LoggingIntegration
 #from scrapings.betano import scraping_games as betano_scraping
-from scrapings.betway import main as betway_scraping
+from scrapings.betway import scraping as betway_scraping
+from core.config import get_settings
 import sentry_sdk
+import websocket
 import asyncio
 import logging
 import typer
+import json
+from rich import print
 
 
 logging.basicConfig(
@@ -33,16 +37,30 @@ sentry_sdk.init(
 
 
 app = typer.Typer()
+settings = get_settings()
 
 
 @app.command()
 def websites(betway: bool=False, betano: bool=False):
-    async def main():
-        if betway:
-            await betway_scraping()
-        #if betano:
-        #    await betano_scraping()
-    asyncio.run(main())
+    ws = websocket.WebSocket()
+    uri = f'{settings.WS}/websites'
+    ws.connect(uri)
+    if betway:
+        ws.send(json.dumps({'id': 'betway.com', 'scraping': True}))
+        print(ws.recv())
+        try:
+            betway_scraping()
+        except Exception as e:
+            ws.send(json.dumps({'id': 'betway.com', 'scraping': False}))
+            raise e
+        finally:
+            ws.send(json.dumps({'id': 'betway.com', 'scraping': False}))
+            print('secound', ws.recv())
+    
+    ws.close()
+    #if betano:
+    #    await betano_scraping()
+    #asyncio.run(main())
 
 @app.command()
 def goodbye(name: str, formal: bool = False):
