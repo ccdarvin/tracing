@@ -61,8 +61,8 @@ async def website_ws(websocket: WebSocket):
                 continue
             else:
                 await save(r, model)
-                await manager.send_personal_message({'status': 'ok'}, websocket)
                 await manager.broadcast(model.dict(exclude_unset=True))
+                await manager.send_personal_message({'status': 'ok'}, websocket)
             
     except WebSocketDisconnect:
         manager.disconnect(websocket)
