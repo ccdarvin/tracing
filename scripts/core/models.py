@@ -29,18 +29,20 @@ class Website(RedisModel):
         return f'websites:{self.id}'
 
 
-class Page(RedisModel):
+class Game(RedisModel):
     id: str
-    site: Optional[str]
+    websiteId: Optional[str]
+    urlSource: Optional[str]
     sport: Optional[str]
-    game: Optional[str]
+    fullName: Optional[str]
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
-    lastUpdate: datetime = datetime.now(timezone.utc)
-    scraping: bool = False
     
     def key(self):
-        return f'pages:{self.site}:{self.id}'
+        id = self.id
+        id = id.replace('https://', '')
+        id = id.replace(self.websiteId, '')
+        return f'{self.websiteId}:{id}'
     
 
 

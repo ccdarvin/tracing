@@ -1,27 +1,11 @@
 from sentry_sdk.integrations.logging import LoggingIntegration
 #from scrapings.betano import scraping_games as betano_scraping
 from scrapings.betway import scraping as betway_scraping
-from datetime import datetime, timezone
 from core.config import get_settings
+from rich import print
 import sentry_sdk
 import websocket
-import logging
 import typer
-import json
-from rich import print
-
-
-logging.basicConfig(
-    level=logging.INFO, 
-    filename="jobs.log",
-    filemode="w",
-    format='%(name)s %(asctime)s %(levelname)s %(message)s'
-)
-
-sentry_logging = LoggingIntegration(
-    #level=logging.INFO,        # Capture info and above as breadcrumbs
-    event_level=logging.ERROR  # Send errors as events
-)
 
 sentry_sdk.init(
     dsn="https://f7b61367ec5f472eb4b989913b5879b1@o220382.ingest.sentry.io/4504272342155264",
@@ -30,9 +14,6 @@ sentry_sdk.init(
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
     traces_sample_rate=1.0,
-    integrations=[
-        sentry_logging,
-    ],
 )
 
 
@@ -57,9 +38,10 @@ def websites(betway: bool=False, betano: bool=False):
     uri = f'{settings.WS}/websites'
     ws = websocket.WebSocket()
     if betway:
-        ws.connect(f'{uri}?scraping=betway.com')
+        website_id='betway.com'
+        ws.connect(f'{uri}?scraping={website_id}')
         try:
-            betway_scraping()
+            betway_scraping(website_id)
         except Exception as e:
             raise e
             

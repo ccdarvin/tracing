@@ -3,14 +3,15 @@ from datetime import datetime, timezone
 from core.webdriver import init_driver
 from core.utils import scroll_down
 from time import sleep
-import logging
+from core.models import Game, Website, save, delete, exists
+from rich import print
 
 
 
-def get_pages(page_url, driver):
+def get_pages(website_id, page_url, driver):
     driver.get(page_url)
-    logging.info(f'🔗 {page_url}')
-    sleep(20)
+    print(f'🔗 {page_url}')
+    sleep(10)
     
     for elm in driver.find_elements(By.CSS_SELECTOR, '.collapsablePanel'):
         try:
@@ -25,32 +26,28 @@ def get_pages(page_url, driver):
             except:
                 pass
             else:
-                sleep(5)
+                sleep(3)
                 height = (len(elm.find_elements(By.CSS_SELECTOR, '.scoreboardInfoNames')) + 1) * 30
                 scroll_down(driver, 'body', height)
         
     
     for elm in driver.find_elements(By.CSS_SELECTOR, '.scoreboardInfoNames'):
-        url = elm.get_attribute('href').replace('https://', '')
-        try: 
-            game = Game.get(url)
-        except NotFoundError:            
-            game = Game(
-                url = url,
-                site ='betway.com',
-                sport = 'futbol',
-                game = elm.text,
-                firstTeam = elm.text.split('-')[0].strip(),
-                secoundTeam = elm.text.split('-')[1].strip()
-            )
-        else:
-            game.lastUpdate = datetime.now(timezone.utc)
-        game.save()
-        game.expire(60*60*24)
-        logging.info(f'✅ {game.__dict__}')
+        first = elm.text.split('-')[0].strip()
+        secound = elm.text.split('-')[1].strip()
+        game = Game(
+            id = elm.get_attribute('href'),
+            websiteId=website_id,
+            urlSource=page_url,
+            sport='futbol',
+            fullName=f'{first} vs {secound}',
+            firstTeam=first,
+            secoundTeam=secound
+        )
+        save(game)
+        print(f'✅ {game.__dict__}')
 
 
-def scraping():
+def scraping(website_id):
     driver = init_driver()
     urls = [
         'https://betway.com/es/sports/ctl/soccer',
@@ -60,11 +57,13 @@ def scraping():
         'https://betway.com/es/sports/cpn/soccer/291',
     ]
     for url in urls:
-        pass
-        #page_data(url, driver)
+        try:
+            get_pages(website_id, url, driver)
+        except Exception as e:
+            print(e)
      
     # close driver
-    sleep(20)
+    sleep(3)
     driver.close()
     driver.quit()
     
