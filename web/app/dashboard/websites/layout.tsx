@@ -38,7 +38,7 @@ export default function Layout(
       setConnected(false)
       setTimeout(() => {
         setCount(count + 1)
-      }, 3000)
+      }, 1000)
     }
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
@@ -59,6 +59,7 @@ export default function Layout(
     return () => {
       if (ws.readyState == WebSocket.OPEN) {
         ws.close()
+        setConnected(false)
       }
     }
   }, [count])
@@ -81,10 +82,8 @@ export default function Layout(
         options={websites.map((website: any) => ({
           value: website.id,
           label: <div className="flex flex-col items-center gap-1 py-2">
-              <Badge dot status={website.scraping? 'processing': 'default'}>
                 <Avatar src={website.icon} />
-              </Badge>
-            <div>{website.id}</div>
+            <div>{website.id} <Badge status={website.scraping? 'processing': 'default'} /> </div>
           </div>
         }))}
         />
