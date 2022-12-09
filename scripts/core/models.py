@@ -31,7 +31,7 @@ class Website(RedisModel):
 
 class Game(RedisModel):
     id: str
-    websiteId: Optional[str]
+    websiteId: str
     urlSource: Optional[str]
     sport: Optional[str]
     fullName: Optional[str]
@@ -44,6 +44,19 @@ class Game(RedisModel):
         id = id.replace('https://', '')
         id = id.replace(self.websiteId, '')
         return f'games:{self.websiteId}:{id}'
+    
+
+class Bet(RedisModel):
+    id: str
+    websiteId: str
+    gameId: str
+    group: Optional[str]
+    name: Optional[str]
+    bet: Optional[float]
+    
+    def key(self):
+        game_id = self.gameId.replace('https://', '').replace(self.websiteId, '')
+        return f'bets:{self.websiteId}:{game_id}:{self.id}'
 
 
 def save(model: RedisModel):

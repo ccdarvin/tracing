@@ -70,9 +70,8 @@ def games():
         ws.connect(uri)
         print(ws.recv())
         if game.websiteId == 'betway.com':
-            betway_scraping_game(game.websiteId, game.id, ws)
+            betway_scraping_game(game, ws)
         
-
 
 if __name__ == "__main__":
     app()

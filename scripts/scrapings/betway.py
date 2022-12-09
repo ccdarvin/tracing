@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from datetime import datetime, timezone
 from core.webdriver import init_driver
 from core.utils import scroll_down
+from core.models import Bet
 from time import sleep
 from core.models import Game, Website, save, delete, exists
 from rich import print
@@ -69,13 +70,59 @@ def scraping(website_id):
     driver.quit()
     
 
-def scraping_game(webiste_id, game_id, ws):
+def get_bets(driver, game, ws):
+    for elm in driver.find_elements(By.CSS_SELECTOR, '.collapsablePanel'):
+        collapsed_elm = elm.find_element(By.CSS_SELECTOR, '.collapsableContent')
+        if 'empty' in collapsed_elm.get_attribute('class'):
+            try:
+                elm.click()
+            except:
+                pass
+        try:
+            header_elm = elm.find_element(By.CSS_SELECTOR, '.titleText>.title')
+            cashout_elm = elm.find_element(By.CSS_SELECTOR, '.cashOutMarketIndicatorContainer')
+        except:
+            continue    
+        try:
+            labels_elms = elm.find_elements(By.CSS_SELECTOR, '.outcomeHeader, .outcomeItemHeader')
+            odds_elms = elm.find_elements(By.CSS_SELECTOR, '.oddsDisplay')
+        except:
+            continue
+        
+        for labels_elm, odds_elm in zip(labels_elms, odds_elms):
+            try:
+                group = header_elm.text.strip()
+                name = labels_elm.text.strip()
+                bet = Bet(
+                    id=f'{group}-{name}'.replace(' ', '-').lower(),
+                    websiteId=game.websiteId,
+                    gameId=game.id,
+                    group=group, 
+                    name=name, 
+                    bet=float(odds_elm.text.replace(',', '.'))
+                )
+            except Exception as e:
+                print('Error', e)
+            else:
+                ws.send(json.dumps({'type': 'bet', 'data': bet.__dict__}))
+                print(ws.recv())
+        scroll_down(driver, 'body', 500)
+        sleep(2)
+        
+
+def scraping_game(game, ws):
     driver = init_driver()
-    print(f'⚽ {game_id}')
-    driver.get(game_id)
-    for index in range(1, 80):
+    driver.get(game.id)
+    print(f'⚽ {game.id}')
+    status_code = driver.find_element(By.CSS_SELECTOR, 'meta[http-equiv="status"]').get_attribute('content')
+    if status_code == '404':
+        delete(game)
+        print(f'❌ {game.id}')
+        return
+    for index in range(1, 200):
         sleep(1)
-        ws.send(json.dumps({'type': 'game', 'data': {'id': game_id, 'index': index}}))
+        ws.send(json.dumps({'type': 'game', 'data': {'id': game.id, 'index': index}}))
         print(ws.recv())
+        get_bets(driver, game, ws)
     driver.close()
     driver.quit()
