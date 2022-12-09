@@ -46,15 +46,31 @@ class Game(RedisModel):
             TagField('$.scraping', as_name='scraping'),
             TagField('$.websiteId', as_name='websiteId'),
         )
+        
+
+class Bet(RedisModel):
+    id: str
+    websiteId: str
+    gameId: str
+    group: Optional[str]
+    name: Optional[str]
+    bet: Optional[float]
+    
+    def key(self):
+        game_id = self.gameId.replace('https://', '').replace(self.websiteId, '')
+        return f'bets:{self.websiteId}:{game_id}:{self.id}'
     
 
-async def save(r: Redis, model: RedisModel):
+async def save(r: Redis, model: RedisModel, expire: int = 0):
     key = model.key()
     if await r.exists(key):
         for field, value in model.dict(exclude_unset=True).items():
            await r.json().set(key, f'.{field}', value)
     else:
         await r.json().set(key, Path.root_path(), model.dict())
+        
+    if expire > 0:
+        await r.expire(key, expire)
 
 
 async def delete(r: Redis, model: RedisModel):

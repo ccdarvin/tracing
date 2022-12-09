@@ -2,7 +2,7 @@
 'use client'
 
 import { WEBSITE_API, WEBSITE_WS } from '@/hooks/atoms'
-import { Skeleton, List, Alert, Avatar, Tag, Badge, Segmented } from 'antd'  
+import { Skeleton, Alert, Avatar, Badge, Segmented } from 'antd'  
 import { MinusCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -26,7 +26,6 @@ export default function Layout(
   const [connected, setConnected] = useState(false)
   const [count, setCount] = useState(1)
   const websiteId = useSelectedLayoutSegment()
-
   useEffect(() => {
     const ws = new WebSocket(WEBSITE_WS)
     ws.onopen = () => {
@@ -82,6 +81,7 @@ export default function Layout(
         options={websites.map((website: any) => ({
           value: website.id,
           label: <div className="flex flex-col items-center gap-1 py-2">
+            
                 <Avatar src={website.icon} />
             <div>{website.id} <Badge status={website.scraping? 'processing': 'default'} /> </div>
           </div>

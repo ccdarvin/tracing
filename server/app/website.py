@@ -1,4 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
+from redis.commands.search import aggregation
+from redis.commands.search import reducers
 from pydantic import ValidationError
 from .models import Website, save
 from typing import List
@@ -86,7 +88,15 @@ async def website_ws(websocket: WebSocket):
 @router.get('/websites')
 async def website(request: Request):
     r = request.app.state.redis
+    game_count = {}
+    for row in (await r.ft('idxGames').aggregate(
+        aggregation.AggregateRequest('*').group_by(
+            '@websiteId', reducers.count().alias('count')
+        )
+    )).rows:
+        game_count[row[1].decode()] = int(row[3])
     websites = await r.json().mget(await r.keys('website*'), path='.')
     for website in websites:
         website['icon'] = f'https://www.google.com/s2/favicons?domain={website["id"]}&sz=64'
+        website['gameCount'] = game_count.get(website['id'], 0)
     return websites

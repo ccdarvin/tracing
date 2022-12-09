@@ -114,16 +114,19 @@ def scraping_game(game, ws):
     driver = init_driver()
     driver.get(game.id)
     print(f'⚽ {game.id}')
-    sleep(5)
+    sleep(10)
     status_code = driver.find_element(By.CSS_SELECTOR, 'meta[http-equiv="status"]').get_attribute('content')
     if status_code == '404':
         delete(game)
-        print(f'❌ {game.id}')
+        print(f'❌ delete {game.id}')
         return
-    for index in range(1, 20):
+    
+    for index in range(1, 50):
         sleep(1)
         ws.send(json.dumps({'type': 'game', 'data': {'id': game.id, 'index': index}}))
         print(ws.recv())
         get_bets(driver, game, ws)
+    
+    
     driver.close()
     driver.quit()

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from pydantic import ValidationError, HttpUrl
-from .models import Game, save, exists
+from .models import Game, Bet, save, exists
 from typing import List
 import json
 
@@ -17,7 +17,11 @@ async def game_scraping(websocket: WebSocket, scraping: bool):
     else:
         game = Game(id=id, websiteId=website_id, scraping=scraping)
         if not await exists(websocket.app.state.redis, game):
-            print('game does not exist')
+            deleted = True
+            await manager.broadcast({
+                'id': game.id,
+                'deleted': deleted,
+            })
         else:    
             await save(websocket.app.state.redis, game)
             await manager.broadcast(game.json(exclude_unset=True))
@@ -68,7 +72,27 @@ async def website_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
             except json.JSONDecodeError:
                 await manager.send_personal_message({'status': 'error', 'message': 'Invalid JSON'}, websocket)
                 continue
-            await manager.send_personal_message(data, websocket)
+            
+            try:
+                type_data = data['type']
+                data = data['data']
+            except KeyError:
+                await manager.send_personal_message({'status': 'error', 'message': 'Missing type or data'}, websocket)
+                continue
+            
+            if type_data == 'bet':
+                try:
+                    bet = Bet(**data)
+                except ValidationError as e:
+                    await manager.send_personal_message({'status': 'error', 'message': 'Invalid data', 'errors': e.errors()}, websocket)
+                    continue
+                else:
+                    await save(r, bet, 60*60*24*15)
+                    await manager.broadcast(bet.json(exclude_unset=True))
+                    continue
+            
+            await manager.send_personal_message({'status': 'error', 'message': 'Invalid type'}, websocket)
+                    
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
 
