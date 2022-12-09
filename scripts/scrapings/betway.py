@@ -73,6 +73,6 @@ def scraping_game(webiste_id, game_id):
     print(f'⚽ {game_id}')
     driver.get(game_id)
     
-    sleep(30)
+    sleep(60*10)
     driver.close()
     driver.quit()
