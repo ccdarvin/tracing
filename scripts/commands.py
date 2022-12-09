@@ -12,6 +12,7 @@ import websocket
 import typer
 from core.models import r, Game
 import json
+from random import randint
 
 
 sentry_sdk.init(
@@ -60,17 +61,21 @@ def websites(betway: bool=False, betano: bool=False):
 
 @app.command()
 def games():
-    docs = r.ft('idxGames').search(Query('@scraping:{false}').paging(0, 1)).docs
+    docs = r.ft('idxGames').search(Query('@scraping:{false}')).docs
     r.close()
-    for doc in docs:
-        game = Game(**json.loads(doc.json))
-        ws = websocket.WebSocket()
-        uri = f'{settings.WS}/games/{game.websiteId}?game_id={game.id}'
-        ws.connect(uri)
-        print(ws.recv())
-        if game.websiteId == 'betway.com':
-            betway_scraping_game(game, ws)
-        ws.close()
+    if len(docs) == 0:
+        print('No games to scrape')
+        return
+    
+    doc = docs[randint(0, len(docs)-1)]
+    game = Game(**json.loads(doc.json))
+    ws = websocket.WebSocket()
+    uri = f'{settings.WS}/games/{game.websiteId}?game_id={game.id}'
+    ws.connect(uri)
+    print(ws.recv())
+    if game.websiteId == 'betway.com':
+        betway_scraping_game(game, ws)
+    ws.close()
 
 if __name__ == "__main__":
     app()

@@ -13,7 +13,7 @@ import json
 def get_pages(website_id, page_url, driver):
     driver.get(page_url)
     print(f'🔗 {page_url}')
-    sleep(10)
+    sleep(20)
     
     for elm in driver.find_elements(By.CSS_SELECTOR, '.collapsablePanel'):
         try:
@@ -52,7 +52,7 @@ def get_pages(website_id, page_url, driver):
 def scraping(website_id):
     driver = init_driver()
     urls = [
-        'https://betway.com/es/sports/ctl/soccer',
+        'https://betway.com/es/sports/grp/soccer/world-cup-2022/',
         'https://betway.com/es/sports/cpn/soccer/9',
         'https://betway.com/es/sports/cpn/soccer/90',
         'https://betway.com/es/sports/cpn/soccer/118',
@@ -105,9 +105,10 @@ def get_bets(driver, game, ws):
                 print('Error', e)
             else:
                 ws.send(json.dumps({'type': 'bet', 'data': bet.__dict__}))
-                print(ws.recv())
+                ws.recv()
+                #print(ws.recv())
         scroll_down(driver, 'body', 500)
-        sleep(10)
+        sleep(30)
         
 
 def scraping_game(game, ws):
@@ -121,12 +122,9 @@ def scraping_game(game, ws):
         print(f'❌ delete {game.id}')
         return
     
-    for index in range(1, 50):
+    for index in range(1, 20):
         sleep(1)
-        ws.send(json.dumps({'type': 'game', 'data': {'id': game.id, 'index': index}}))
-        print(ws.recv())
         get_bets(driver, game, ws)
-    
     
     driver.close()
     driver.quit()

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from pydantic import ValidationError, HttpUrl
+from redis.commands.search.query import Query
 from .models import Game, Bet, save, exists
 from typing import List
 import json
@@ -97,10 +98,22 @@ async def website_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
         await manager.disconnect(websocket)
 
 
-#@router.get('/games/{website_id}')
-#async def games(request: Request):
-#    r = request.app.state.redis
-#    websites = await r.json().mget(await r.keys('website*'), path='.')
-#    for website in websites:
-#        website['icon'] = f'https://www.google.com/s2/favicons?domain={website["id"]}&sz=64'
-#    return websites
+@router.get('/games')
+async def game_list(request: Request, q: str=None):
+    r = request.app.state.redis
+    q_base=q
+    q.replace('*', '')
+    q.replace(' ', '*')
+    q_diff = q_base
+    q_diff.replace('*', '')
+    q_diff.replace(' ', '%')
+    q = Query(f'{q_base}|{q}*|{q_diff}').with_scores().paging(0, 30).language('spanish')
+    result = await r.ft('idxGames').search(q)
+    games = []
+    for doc in result.docs:
+        games.append({
+            **json.loads(doc.json),
+            'key': doc.id,
+            'searchScore': doc.score
+        })
+    return games

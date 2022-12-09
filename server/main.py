@@ -8,6 +8,7 @@ from typing import List
 from app.models import Game
 import redis.asyncio as redis
 from redis import ResponseError
+from time import sleep
 
 
 app = FastAPI()
@@ -32,12 +33,21 @@ async def startup():
         password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
     )
     try:
+        await app.state.redis.ft(Game.Meta.index_name).dropindex()
+    except ResponseError:
+        print('Index does not exist')
+    else:
+        print('Index dropped')
+    sleep(5)
+    try:
         await app.state.redis.ft(Game.Meta.index_name).create_index(
             Game.Meta.schema, 
             definition=IndexDefinition(prefix=Game.Meta.prefix, index_type=IndexType.JSON)
         )
     except ResponseError:
-        print('Index already exists')        
+        print('Error creating index')
+    else:
+        print('Index created')
 
     
 @app.on_event('shutdown')

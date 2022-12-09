@@ -45,8 +45,9 @@ class Game(RedisModel):
         schema = (
             TagField('$.scraping', as_name='scraping'),
             TagField('$.websiteId', as_name='websiteId'),
+            TextField('$.firstTeam', as_name='firstTeam', weight=1),
+            TextField('$.secoundTeam', as_name='secoundTeam', weight=0.5),
         )
-        
 
 class Bet(RedisModel):
     id: str
