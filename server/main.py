@@ -25,13 +25,13 @@ app.add_middleware(
 
 @app.on_event('startup')
 async def startup():
-    app.state.redis = redis.Redis(
+    app.state.redis = await redis.Redis(
         host='redis-12622.c277.us-east-1-3.ec2.cloud.redislabs.com',
         port=12622,
         password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
     )
     try:
-        await app.state.redis.ft(Game.Meta.index_name).dropindex(delete_documents=False)
+        await app.state.redis.ft(Game.Meta.index_name).dropindex()
     except ResponseError:
         pass
     finally:
