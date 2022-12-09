@@ -14,6 +14,7 @@ app = FastAPI()
 app.include_router(website_router, tags=['website'])
 app.include_router(game_router, tags=['game'])
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins='*',
@@ -31,14 +32,12 @@ async def startup():
         password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
     )
     try:
-        await app.state.redis.ft(Game.Meta.index_name).dropindex()
-    except ResponseError:
-        pass
-    finally:
         await app.state.redis.ft(Game.Meta.index_name).create_index(
             Game.Meta.schema, 
             definition=IndexDefinition(prefix=Game.Meta.prefix, index_type=IndexType.JSON)
         )
+    except ResponseError:
+        print('Index already exists')        
 
     
 @app.on_event('shutdown')
