@@ -63,6 +63,12 @@ async def website_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
         while True:
             data = await websocket.receive_text()
             print(data)
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                await manager.send_personal_message({'status': 'error', 'message': 'Invalid JSON'}, websocket)
+                continue
+            await manager.send_personal_message(data, websocket)
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
 

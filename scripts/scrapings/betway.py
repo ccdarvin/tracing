@@ -5,6 +5,7 @@ from core.utils import scroll_down
 from time import sleep
 from core.models import Game, Website, save, delete, exists
 from rich import print
+import json
 
 
 
@@ -68,11 +69,13 @@ def scraping(website_id):
     driver.quit()
     
 
-def scraping_game(webiste_id, game_id):
+def scraping_game(webiste_id, game_id, ws):
     driver = init_driver()
     print(f'⚽ {game_id}')
     driver.get(game_id)
-    
-    sleep(60*10)
+    for index in range(1, 80):
+        sleep(1)
+        ws.send(json.dumps({'type': 'game', 'data': {'id': game_id, 'index': index}}))
+        print(ws.recv())
     driver.close()
     driver.quit()

@@ -47,6 +47,7 @@ def websites(betway: bool=False, betano: bool=False):
     if betway:
         website_id='betway.com'
         ws.connect(f'{uri}?scraping={website_id}')
+        print(ws.recv())
         try:
             betway_scraping(website_id)
         except Exception as e:
@@ -59,15 +60,17 @@ def websites(betway: bool=False, betano: bool=False):
 
 @app.command()
 def games():
-    docs = r.ft('idxGames').search(Query('@scraping:{false}').paging(0, 5)).docs
+    docs = r.ft('idxGames').search(Query('@scraping:{false}').paging(0, 1)).docs
+    r.close()
     for doc in docs:
         game = Game(**json.loads(doc.json))
         print(game)
         ws = websocket.WebSocket()
         uri = f'{settings.WS}/games/{game.websiteId}?game_id={game.id}'
         ws.connect(uri)
+        print(ws.recv())
         if game.websiteId == 'betway.com':
-            betway_scraping_game(game.websiteId, game.id)
+            betway_scraping_game(game.websiteId, game.id, ws)
         
 
 
