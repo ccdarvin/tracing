@@ -107,7 +107,7 @@ def get_bets(driver, game, ws):
                 ws.send(json.dumps({'type': 'bet', 'data': bet.__dict__}))
                 print(ws.recv())
         scroll_down(driver, 'body', 500)
-        sleep(2)
+        sleep(10)
         
 
 def scraping_game(game, ws):
@@ -119,7 +119,7 @@ def scraping_game(game, ws):
         delete(game)
         print(f'❌ {game.id}')
         return
-    for index in range(1, 200):
+    for index in range(1, 20):
         sleep(1)
         ws.send(json.dumps({'type': 'game', 'data': {'id': game.id, 'index': index}}))
         print(ws.recv())
