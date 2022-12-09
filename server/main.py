@@ -1,13 +1,18 @@
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.website import router as website_router
+from app.game import router as game_router
 from fastapi.responses import HTMLResponse
 from typing import List
+from app.models import Game
 import redis.asyncio as redis
+from redis import ResponseError
 
 
 app = FastAPI()
 app.include_router(website_router, tags=['website'])
+app.include_router(game_router, tags=['game'])
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,10 +30,20 @@ async def startup():
         port=12622,
         password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
     )
+    try:
+        await app.state.redis.ft(Game.Meta.index_name).dropindex(delete_documents=False)
+    except ResponseError:
+        pass
+    finally:
+        await app.state.redis.ft(Game.Meta.index_name).create_index(
+            Game.Meta.schema, 
+            definition=IndexDefinition(prefix=Game.Meta.prefix, index_type=IndexType.JSON)
+        )
+
     
 @app.on_event('shutdown')
 async def shutdown():
-    await app.state.redis.close()
+    await app.state.redis.close()  
 
 
 html = """

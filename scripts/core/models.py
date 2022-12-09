@@ -37,13 +37,13 @@ class Game(RedisModel):
     fullName: Optional[str]
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
+    scraping: Optional[bool] = False
     
     def key(self):
         id = self.id
         id = id.replace('https://', '')
         id = id.replace(self.websiteId, '')
-        return f'{self.websiteId}:{id}'
-    
+        return f'games:{self.websiteId}:{id}'
 
 
 def save(model: RedisModel):

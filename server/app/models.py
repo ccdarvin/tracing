@@ -1,4 +1,4 @@
-#from redis.commands.search.field import TextField
+from redis.commands.search.field import TextField, NumericField, TagField
 from redis.commands.json.path import Path
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -23,19 +23,30 @@ class Website(RedisModel):
         return f'websites:{self.id}'
 
 
-class Page(RedisModel):
+class Game(RedisModel):
     id: str
-    site: Optional[str]
+    websiteId: str
+    urlSource: Optional[str]
     sport: Optional[str]
-    game: Optional[str]
+    fullName: Optional[str]
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
-    scraping: bool = False
+    scraping: Optional[bool] = False
     
     def key(self):
-        return f'pages:{self.site}:{self.id}'
+        id = self.id
+        id = id.replace('https://', '')
+        id = id.replace(self.websiteId, '')
+        return f'games:{self.websiteId}:{id}'
     
-
+    class Meta:
+        index_name = 'idxGames'
+        prefix = ['games:']
+        schema = (
+            TagField('$.scraping', as_name='scraping'),
+            TagField('$.websiteId', as_name='websiteId'),
+        )
+    
 
 async def save(r: Redis, model: RedisModel):
     key = model.key()
@@ -50,6 +61,11 @@ async def delete(r: Redis, model: RedisModel):
     key = model.key()
     if await r.exists(key):
         await r.json().delete(key)
-        
+
+     
 async def exists(r: Redis, model: RedisModel):
     return await r.exists(model.key()) == 1
+
+
+async def run_index(r: Redis, model: RedisModel):
+    await r.ft('')

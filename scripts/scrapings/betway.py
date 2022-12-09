@@ -68,3 +68,11 @@ def scraping(website_id):
     driver.quit()
     
 
+def scraping_game(webiste_id, game_id):
+    driver = init_driver()
+    print(f'⚽ {game_id}')
+    driver.get(game_id)
+    
+    sleep(30)
+    driver.close()
+    driver.quit()

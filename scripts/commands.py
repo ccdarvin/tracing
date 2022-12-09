@@ -1,11 +1,18 @@
 from sentry_sdk.integrations.logging import LoggingIntegration
 #from scrapings.betano import scraping_games as betano_scraping
-from scrapings.betway import scraping as betway_scraping
+from scrapings.betway import (
+    scraping as betway_scraping,
+    scraping_game as betway_scraping_game,
+)
+from redis.commands.search.query import Query
 from core.config import get_settings
 from rich import print
 import sentry_sdk
 import websocket
 import typer
+from core.models import r, Game
+import json
+
 
 sentry_sdk.init(
     dsn="https://f7b61367ec5f472eb4b989913b5879b1@o220382.ingest.sentry.io/4504272342155264",
@@ -51,11 +58,17 @@ def websites(betway: bool=False, betano: bool=False):
     #asyncio.run(main())
 
 @app.command()
-def goodbye(name: str, formal: bool = False):
-    if formal:
-        print(f"Goodbye Ms. {name}. Have a good day.")
-    else:
-        print(f"Bye {name}!")
+def games():
+    docs = r.ft('idxGames').search(Query('@scraping:{false}').paging(0, 5)).docs
+    for doc in docs:
+        game = Game(**json.loads(doc.json))
+        print(game)
+        ws = websocket.WebSocket()
+        uri = f'{settings.WS}/games/{game.websiteId}?game_id={game.id}'
+        ws.connect(uri)
+        if game.websiteId == 'betway.com':
+            betway_scraping_game(game.websiteId, game.id)
+        
 
 
 if __name__ == "__main__":
