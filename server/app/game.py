@@ -101,14 +101,10 @@ async def website_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
 @router.get('/games')
 async def game_list(request: Request, q: str=None):
     r = request.app.state.redis
-    q_base=q
-    q.replace('*', '')
-    q.replace(' ', '*')
-    q_diff = q_base
-    q_diff.replace('*', '')
-    q_diff.replace(' ', '%')
-    q = Query(f'{q_base}|{q}*|{q_diff}').with_scores().paging(0, 30).language('spanish')
-    result = await r.ft('idxGames').search(q)
+    q_any = q.replace('*', '').replace('vs', '').replace('  ', ' ').strip().replace(' ', '*')
+    print(f'{q}|{q_any}*')
+    query = Query(f'{q}|{q_any}*').with_scores().paging(0, 30).language('spanish')
+    result = await r.ft('idxGames').search(query)
     games = []
     for doc in result.docs:
         games.append({

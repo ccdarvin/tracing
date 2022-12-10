@@ -1,5 +1,7 @@
 from sentry_sdk.integrations.logging import LoggingIntegration
-#from scrapings.betano import scraping_games as betano_scraping
+from scrapings.betano import (
+    scraping as betano_scraping,
+)
 from scrapings.betway import (
     scraping as betway_scraping,
     scraping_game as betway_scraping_game,
@@ -52,15 +54,27 @@ def websites(betway: bool=False, betano: bool=False):
         try:
             betway_scraping(website_id)
         except Exception as e:
-            raise e
-            
+            raise e      
         
-    #if betano:
-    #    await betano_scraping()
-    #asyncio.run(main())
+    if betano:
+        website_id='betano.com'
+        ws.connect(f'{uri}?scraping={website_id}')
+        print(ws.recv())
+        try:
+            betano_scraping(website_id)
+        except Exception as e:
+            raise e
 
 @app.command()
-def games():
+def games(clean: bool=False):
+    
+    if clean:
+        keys = r.keys('games:*')
+        for key in keys:
+            r.json().set(key, '.scraping', False)
+        print(f'Cleaned {len(keys)} games')
+        return
+    
     docs = r.ft('idxGames').search(Query('@scraping:{false}')).docs
     r.close()
     if len(docs) == 0:
@@ -75,6 +89,8 @@ def games():
     print(ws.recv())
     if game.websiteId == 'betway.com':
         betway_scraping_game(game, ws)
+    else:
+        print('No scraping for this website')
     ws.close()
 
 if __name__ == "__main__":

@@ -38,6 +38,7 @@ class Game(RedisModel):
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
     scraping: Optional[bool] = False
+    lastUpdate: Optional[datetime]
     
     def key(self):
         id = self.id
@@ -66,6 +67,8 @@ def save(model: RedisModel):
             r.json().set(key, f'.{field}', value)
     else:
         r.json().set(key, Path.root_path(), model.dict())
+    # update lastUpdate 
+    r.json().set(key, f'.lastUpdate', datetime.now(timezone.utc).isoformat())
 
 
 def delete(model: RedisModel):
