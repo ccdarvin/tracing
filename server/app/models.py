@@ -1,4 +1,4 @@
-from redis.commands.search.field import TextField, NumericField, TagField
+from redis.commands.search.field import TextField, TagField
 from redis.commands.json.path import Path
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -32,12 +32,19 @@ class Game(RedisModel):
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
     scraping: Optional[bool] = False
+    lastScraping: Optional[datetime]
     
     def key(self):
         id = self.id
         id = id.replace('https://', '')
         id = id.replace(self.websiteId, '')
         return f'games:{self.websiteId}:{id}'
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+        }
+        
     
     class Meta:
         index_name = 'idxGames'
@@ -47,6 +54,7 @@ class Game(RedisModel):
             TagField('$.websiteId', as_name='websiteId'),
             TextField('$.firstTeam', as_name='firstTeam', weight=1),
             TextField('$.secoundTeam', as_name='secoundTeam', weight=0.5),
+            TextField('$.lastScraping', as_name='lastScraping', sortable=True),
         )
 
 class Bet(RedisModel):
@@ -66,7 +74,9 @@ async def save(r: Redis, model: RedisModel, expire: int = 0):
     key = model.key()
     if await r.exists(key):
         for field, value in model.dict(exclude_unset=True).items():
-           await r.json().set(key, f'.{field}', value)
+            if isinstance(value, datetime):
+                value = value.replace(tzinfo=timezone.utc).isoformat()
+            await r.json().set(key, f'.{field}', value)
     else:
         await r.json().set(key, Path.root_path(), model.dict())
         

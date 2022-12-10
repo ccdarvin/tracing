@@ -2,6 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from pydantic import ValidationError, HttpUrl
 from redis.commands.search.query import Query
 from .models import Game, Bet, save, exists
+from datetime import datetime, timezone
 from typing import List
 import json
 
@@ -16,7 +17,7 @@ async def game_scraping(websocket: WebSocket, scraping: bool):
     except KeyError as e:
         print('No scraping', e)
     else:
-        game = Game(id=id, websiteId=website_id, scraping=scraping)
+        game = Game(id=id, websiteId=website_id, scraping=scraping, lastScraping=datetime.now(timezone.utc))
         if not await exists(websocket.app.state.redis, game):
             deleted = True
             await manager.broadcast({

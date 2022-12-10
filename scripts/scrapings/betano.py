@@ -25,7 +25,7 @@ def get_pages(website_id, page_url, driver):
         
         
 def scraping(website_id:str):
-    driver = init_driver(headless=False)
+    driver = init_driver()
     url = 'https://pe.betano.com/sport/futbol/'
     driver.get(url)
     sleep(2)
@@ -39,3 +39,9 @@ def scraping(website_id:str):
     sleep(5)
     driver.close()
     driver.quit()
+    
+    
+    
+
+def scraping_game(game, ws):
+    driver = init_driver()

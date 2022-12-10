@@ -30,18 +30,6 @@ sentry_sdk.init(
 app = typer.Typer()
 settings = get_settings()
 
-def on_message(ws, message):
-    print(message)
-
-def on_error(ws, error):
-    print(error)
-
-def on_close(ws, close_status_code, close_msg):
-    print("### closed ###")
-
-def on_open(ws):
-    print("Opened connection")
-
 
 @app.command()
 def websites(betway: bool=False, betano: bool=False):
@@ -75,7 +63,7 @@ def games(clean: bool=False):
         print(f'Cleaned {len(keys)} games')
         return
     
-    docs = r.ft('idxGames').search(Query('@scraping:{false}')).docs
+    docs = r.ft('idxGames').search(Query('@scraping:{false}').sort_by('lastScraping')).docs
     r.close()
     if len(docs) == 0:
         print('No games to scrape')

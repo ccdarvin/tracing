@@ -37,8 +37,9 @@ class Game(RedisModel):
     fullName: Optional[str]
     firstTeam: Optional[str]
     secoundTeam: Optional[str]
-    scraping: Optional[bool] = False
+    scraping: bool = False
     lastUpdate: Optional[datetime]
+    lastScraping: str = datetime.now(timezone.utc).isoformat()
     
     def key(self):
         id = self.id
