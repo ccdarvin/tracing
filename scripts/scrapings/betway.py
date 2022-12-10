@@ -122,9 +122,9 @@ def scraping_game(game, ws):
         print(f'❌ delete {game.id}')
         return
     
-    for index in range(1, 20):
+    for index in range(1, 5):
         sleep(1)
         get_bets(driver, game, ws)
-    
+    sleep(30)
     driver.close()
     driver.quit()
