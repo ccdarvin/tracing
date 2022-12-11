@@ -62,7 +62,7 @@ manager = ConnectionManager()
 
 
 @router.websocket('/games/{website_id}')
-async def website_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
+async def game_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
     await manager.connect(websocket)
     r = websocket.app.state.redis
     try:

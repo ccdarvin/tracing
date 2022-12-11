@@ -1,6 +1,7 @@
 from sentry_sdk.integrations.logging import LoggingIntegration
 from scrapings.betano import (
     scraping as betano_scraping,
+    scraping_game as betano_scraping_game,
 )
 from scrapings.betway import (
     scraping as betway_scraping,
@@ -77,6 +78,8 @@ def games(clean: bool=False):
     print(ws.recv())
     if game.websiteId == 'betway.com':
         betway_scraping_game(game, ws)
+    elif game.websiteId == 'betano.com':
+        betano_scraping_game(game, ws)
     else:
         print('No scraping for this website')
     ws.close()
