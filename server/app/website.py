@@ -49,10 +49,8 @@ class ConnectionManager:
                 await connection.send_text(message)
 
 
-
 manager = ConnectionManager()
 
-    
 
 @router.websocket("/websites")
 async def website_ws(websocket: WebSocket):
