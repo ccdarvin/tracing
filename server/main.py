@@ -38,7 +38,6 @@ async def startup():
         print('Index does not exist')
     else:
         print('Index dropped')
-    sleep(5)
     try:
         await app.state.redis.ft(Game.Meta.index_name).create_index(
             Game.Meta.schema, 

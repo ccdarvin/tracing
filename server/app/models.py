@@ -52,6 +52,7 @@ class Game(RedisModel):
         schema = (
             TagField('$.scraping', as_name='scraping'),
             TagField('$.websiteId', as_name='websiteId'),
+            TagField('$.related', as_name='related'),
             TextField('$.firstTeam', as_name='firstTeam', weight=1),
             TextField('$.secoundTeam', as_name='secoundTeam', weight=0.5),
             TextField('$.lastScraping', as_name='lastScraping', sortable=True),
@@ -69,6 +70,16 @@ class Bet(RedisModel):
         game_id = self.gameId.replace('https://', '').replace(self.websiteId, '')
         return f'bets:{self.websiteId}:{game_id}:{self.id}'
     
+
+class RelatedGame(RedisModel):
+    id: str
+    name: str
+    related: list[str]
+    created: str = datetime.now(timezone.utc).isoformat()
+    
+    def key(self):
+        return f'related:{self.id}'
+
 
 async def save(r: Redis, model: RedisModel, expire: int = 0):
     key = model.key()

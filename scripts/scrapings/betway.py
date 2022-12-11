@@ -111,7 +111,7 @@ def get_bets(driver, game, ws):
         sleep(30)
         
 
-def scraping_game(game, ws):
+def scraping_game(game, ws, bets=False):
     driver = init_driver()
     driver.get(game.id)
     print(f'⚽ {game.id}')
@@ -121,10 +121,10 @@ def scraping_game(game, ws):
         delete(game)
         print(f'❌ delete {game.id}')
         return
-    
-    for index in range(1, 5):
-        sleep(1)
-        get_bets(driver, game, ws)
+    if bets:
+        for index in range(1, 100):
+            sleep(1)
+            get_bets(driver, game, ws)
     sleep(30)
     driver.close()
     driver.quit()

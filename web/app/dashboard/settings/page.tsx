@@ -1,8 +1,9 @@
 'use client'
-import { Avatar, Form, Input, Table,  Skeleton } from 'antd'
-import { WEBSITE_API, WEBSITE_WS, GAME_API } from '@/hooks/atoms'
+import { Avatar, Form, Input, AutoComplete, Table,  Skeleton, Button, message } from 'antd'
+import { WEBSITE_API, GAME_RELATED_API, GAME_API } from '@/hooks/atoms'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import slugify from 'slugify'
 
 
 export default function Page() {
@@ -36,7 +37,6 @@ export default function Page() {
       return result
     },
   })
-  console.log(websites)
   return <div className="flex flex-col gap-4">
     <div>
       <h1 className="text-xl font-bold">Crear y relacionar juegos</h1>
@@ -45,13 +45,41 @@ export default function Page() {
     <div>
       <Form
         form={form}
+        className="flex gap-4 max-w-lg"
+        onFinish={async (values:any) => {
+          if (selectedGames.length === 0) {
+            message.error('Por favor seleccione un juego en cada casa de apuesta')
+            return
+          }
+          const related = selectedGames.map((game: any) => game.key)
+          const body = { ...values, related, id: slugify(values.name) }
+          const res = await fetch(GAME_RELATED_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+          })
+          if (res.ok) {
+            form.resetFields()
+            setSelectedGames([])
+            refetch()
+            message.success('Juego creado')
+          }
+
+        }}
       >
         <Form.Item
           label="Nombre de juego"
           name="name"
+          className="grow"
+          rules={[{ required: true, message: 'Por favor ingrese el nombre del juego' }]}
         >
-          <Input className="block max-w-sm" />
+          <AutoComplete 
+            options={games?.map((game: any) => ({ value: game.fullName }))}
+          />
         </Form.Item>
+        <Button htmlType="submit">Guardar</Button>
       </Form>
     </div>
     <div className="flex gap-4">

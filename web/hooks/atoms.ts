@@ -10,3 +10,4 @@ export const WEBSITE_WS = `${WS}/websites`
 export const WEBSITE_API = `${API}/websites`
 export const GAME_API = `${API}/games`
 export const GAME_WS = `${WS}/games`
+export const GAME_RELATED_API = `${API}/games/related`

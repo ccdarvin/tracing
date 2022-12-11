@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from pydantic import ValidationError, HttpUrl
 from redis.commands.search.query import Query
-from .models import Game, Bet, save, exists
+from .models import Game, Bet, RelatedGame, save, exists
 from datetime import datetime, timezone
 from typing import List
 import json
@@ -102,7 +102,8 @@ async def website_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
 @router.get('/games')
 async def game_list(request: Request, q: str=None):
     r = request.app.state.redis
-    q_any = q.replace('*', '').replace('vs', '').replace('  ', ' ').strip().replace(' ', '*')
+    q_any = q.replace('*', '').replace('vs', '')
+    q_any = '*'.join(q_any.split())
     print(f'{q}|{q_any}*')
     query = Query(f'{q}|{q_any}*').with_scores().paging(0, 30).language('spanish')
     result = await r.ft('idxGames').search(query)
@@ -114,3 +115,15 @@ async def game_list(request: Request, q: str=None):
             'searchScore': doc.score
         })
     return games
+
+
+@router.post('/games/related')
+async def game_related(
+    request: Request, related: RelatedGame
+):
+    r = request.app.state.redis
+    await save(r, related)
+    for key in related.related:
+        await r.json().set(key, '.related', True)
+        await r.json().set(key, '.scraping', False)
+    return related
