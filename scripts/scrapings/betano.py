@@ -5,7 +5,7 @@ from core.utils import scroll_down
 from bs4 import BeautifulSoup
 from random import randint
 from time import sleep
-
+import json
 
 def get_pages(website_id, page_url, driver):
     driver.get(page_url)
@@ -61,7 +61,9 @@ def get_bets(driver, game, ws):
                         name=name,
                         bet = float(soup_b.find('span', class_='selections__selection__odd').get_text())
                     )
-                    print(bet.__dict__)
+                    ws.send(json.dumps({'type': 'bet', 'data': bet.__dict__}))
+                    ws.recv()
+                    #print(ws.recv())
     for i in range(4):
         try:
             bet_with_scroll()
