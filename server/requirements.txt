@@ -13,3 +13,4 @@ python-jose[cryptography]==3.3.*
 pyhumps==3.8.*
 redis
 pytest
+beautifulsoup4 

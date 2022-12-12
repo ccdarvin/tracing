@@ -10,6 +10,9 @@ from scrapings.betway import (
 from scrapings.tonybet import (
     scraping as tonybet_scraping,
 )
+from scrapings.dafabet import (
+    scraping as dafabet_scraping
+)
 from redis.commands.search.query import Query
 from core.config import get_settings
 from rich import print
@@ -36,7 +39,10 @@ settings = get_settings()
 
 
 @app.command()
-def websites(betway: bool=False, betano: bool=False, tonybet: bool=False):
+def websites(
+    betway: bool=False, betano: bool=False, tonybet: bool=False,
+    dafabet: bool=False
+):
     uri = f'{settings.WS}/websites'
     ws = websocket.WebSocket()
     if betway:
@@ -63,6 +69,15 @@ def websites(betway: bool=False, betano: bool=False, tonybet: bool=False):
         print(ws.recv())
         try:
             tonybet_scraping(website_id)
+        except Exception as e:
+            raise e
+        
+    if dafabet:
+        website_id='dafabet.com'
+        ws.connect(f'{uri}?scraping={website_id}')
+        print(ws.recv())
+        try:
+            dafabet_scraping(website_id)
         except Exception as e:
             raise e
 
