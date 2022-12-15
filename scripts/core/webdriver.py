@@ -16,7 +16,7 @@ def init_driver(headless=True):
     options.add_experimental_option('useAutomationExtension', False)
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     stealth(driver,
-        languages=["es-PE", "es"],
+        languages=["es", "es"],
         vendor="Google Inc.",
         platform="Win32",
         webgl_vendor="Intel Inc.",
