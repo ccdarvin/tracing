@@ -4,7 +4,7 @@ from core.models import Game, Bet
 from core.models import Bet
 from thefuzz import fuzz
 from rich import print
-
+from time import sleep
 
 class Scraping(ScrapingBase):
     website_id = 'tonybet'
@@ -14,6 +14,7 @@ class Scraping(ScrapingBase):
         print(f'🔗 {url}')
         self.driver.get(url)
         self.driver.implicitly_wait(10)
+        sleep(15)
         urls = []
         for elm in self.driver.find_elements(By.CSS_SELECTOR, '.leagues-list-module_itemName__EV6dh'):
             try:
