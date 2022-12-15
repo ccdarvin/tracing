@@ -16,7 +16,7 @@ class Scraping(ScrapingBase):
         self.driver.implicitly_wait(10)
         sleep(15)
         urls = []
-        self.driver.save_screenshot('tonybet.png')
+        print(self.driver.find_element(By.CSS_SELECTOR, 'html').get_attribute('innerHTML'))
         for elm in self.driver.find_elements(By.CSS_SELECTOR, '.leagues-list-module_itemName__EV6dh'):
             try:
                 urls.append(elm.get_attribute('href'))
