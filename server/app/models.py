@@ -1,10 +1,11 @@
 from redis.commands.search.field import TextField, TagField
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.json.path import Path
 from datetime import datetime, timezone
-from pydantic import BaseModel
-from  typing import Optional
 from redis.asyncio import Redis
-
+from redis import ResponseError
+from pydantic import BaseModel
+from typing import Optional
 
 class RedisModel(BaseModel):
     
@@ -24,8 +25,9 @@ class Website(RedisModel):
 
 
 class Game(RedisModel):
-    id: str
+    id: Optional[str]
     websiteId: str
+    relatedKey: Optional[str]
     urlSource: Optional[str]
     sport: Optional[str]
     fullName: Optional[str]
@@ -50,6 +52,7 @@ class Game(RedisModel):
         index_name = 'idxGames'
         prefix = ['games:']
         schema = (
+            TagField('$.id', as_name='id'),
             TagField('$.scraping', as_name='scraping'),
             TagField('$.websiteId', as_name='websiteId'),
             TagField('$.related', as_name='related'),
@@ -62,9 +65,14 @@ class Bet(RedisModel):
     id: str
     websiteId: str
     gameId: str
+    period: str
     group: Optional[str]
     name: Optional[str]
     bet: Optional[float]
+    
+    def __init__(self, **data):
+        data["id"] = f'{data["period"]}_{data["group"]}_{data["name"]}'
+        super().__init__(**data)
     
     def key(self):
         game_id = self.gameId.replace('https://', '').replace(self.websiteId, '')
@@ -74,11 +82,41 @@ class Bet(RedisModel):
 class RelatedGame(RedisModel):
     id: str
     name: str
-    related: list[str]
-    created: str = datetime.now(timezone.utc).isoformat()
+    count: int
+    related: list
+    scraping: bool = False
     
     def key(self):
         return f'related:{self.id}'
+    
+    class Meta:
+        index_name = 'idxRelated'
+        prefix = ['related:']
+        schema = (
+            TagField('$.scraping', as_name='scraping'),
+            TextField('$.related', as_name='related'),
+        )
+
+
+async def run_index(r: Redis, model: RedisModel):
+    try:
+        await r.ft(model.Meta.index_name).dropindex()
+    except ResponseError:
+        print('Index not found')
+    else:
+        print('Index dropped')
+    
+    try:
+        await r.ft(model.Meta.index_name).create_index(
+            model.Meta.schema,
+            definition=IndexDefinition(
+                prefix=model.Meta.prefix, index_type=IndexType.JSON
+            )
+        )
+    except ResponseError:
+        print('Index not created')
+    else:
+        print('Index created')
 
 
 async def save(r: Redis, model: RedisModel, expire: int = 0):
@@ -101,9 +139,14 @@ async def delete(r: Redis, model: RedisModel):
         await r.json().delete(key)
 
      
-async def exists(r: Redis, model: RedisModel):
+async def exists(r: Redis, model: RedisModel) -> bool:
     return await r.exists(model.key()) == 1
 
-
-async def run_index(r: Redis, model: RedisModel):
-    await r.ft('')
+async def reload(r: Redis, model: RedisModel) -> RedisModel | None:
+    key = model.key()
+    print(key)
+    if await r.exists(key):
+        data = await r.json().get(key, Path.root_path())
+        return model.copy(update=data)
+    else:
+        return None

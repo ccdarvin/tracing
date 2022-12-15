@@ -11,3 +11,6 @@ rich
 sentry-sdk
 typer[all]
 websockets
+beautifulsoup4
+thefuzz
+thefuzz[speedup]

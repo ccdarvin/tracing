@@ -32,36 +32,52 @@ class Website(RedisModel):
 class Game(RedisModel):
     id: str
     websiteId: str
+    relatedKey: Optional[str]
     urlSource: Optional[str]
     sport: Optional[str]
     fullName: Optional[str]
     firstTeam: Optional[str]
-    secoundTeam: Optional[str]
+    secondTeam: Optional[str]
     scraping: bool = False
     lastUpdate: Optional[datetime]
-    lastScraping: str = datetime.now(timezone.utc).isoformat()
     
     def key(self):
         id = self.id
         id = id.replace('https://', '')
         id = id.replace(self.websiteId, '')
         return f'games:{self.websiteId}:{id}'
+
+
+class RelatedGame(RedisModel):
+    id: str
+    name: str
+    count: int
+    related: list
+    scraping: bool = False
+    
+    def key(self):
+        return f'related:{self.id}'
     
 
 class Bet(RedisModel):
     id: str
     websiteId: str
     gameId: str
+    period: str
     group: Optional[str]
     name: Optional[str]
     bet: Optional[float]
+    
+    def __init__(self, **data):
+        data["id"] = f'{data["period"]}_{data["group"]}_{data["name"]}'
+        super().__init__(**data)
     
     def key(self):
         game_id = self.gameId.replace('https://', '').replace(self.websiteId, '')
         return f'bets:{self.websiteId}:{game_id}:{self.id}'
 
 
-def save(model: RedisModel):
+def save(model: RedisModel, expire: int = 0):
     key = model.key()
     if r.exists(key):
         for field, value in model.dict(exclude_unset=True).items():
@@ -70,6 +86,8 @@ def save(model: RedisModel):
         r.json().set(key, Path.root_path(), model.dict())
     # update lastUpdate 
     r.json().set(key, f'.lastUpdate', datetime.now(timezone.utc).isoformat())
+    if expire > 0:
+        r.expire(key, expire)
 
 
 def delete(model: RedisModel):

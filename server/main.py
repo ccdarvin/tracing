@@ -5,9 +5,8 @@ from app.website import router as website_router
 from app.game import router as game_router
 from fastapi.responses import HTMLResponse
 from typing import List
-from app.models import Game
+from app.models import Game, RelatedGame, run_index
 import redis.asyncio as redis
-from redis import ResponseError
 from time import sleep
 
 
@@ -32,21 +31,8 @@ async def startup():
         port=12622,
         password='TxVYpEfg4DwZSjDxerOiWxNEhgIZouKa' 
     )
-    try:
-        await app.state.redis.ft(Game.Meta.index_name).dropindex()
-    except ResponseError:
-        print('Index does not exist')
-    else:
-        print('Index dropped')
-    try:
-        await app.state.redis.ft(Game.Meta.index_name).create_index(
-            Game.Meta.schema, 
-            definition=IndexDefinition(prefix=Game.Meta.prefix, index_type=IndexType.JSON)
-        )
-    except ResponseError:
-        print('Error creating index')
-    else:
-        print('Index created')
+    await run_index(app.state.redis, Game)
+    await run_index(app.state.redis, RelatedGame)
 
     
 @app.on_event('shutdown')

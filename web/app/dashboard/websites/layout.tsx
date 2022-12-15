@@ -2,12 +2,10 @@
 'use client'
 
 import { WEBSITE_API, WEBSITE_WS } from '@/hooks/atoms'
-import { Skeleton, Alert, Avatar, Badge, Segmented } from 'antd'  
-import { MinusCircleOutlined, SyncOutlined } from '@ant-design/icons'
+import { Skeleton, Alert, Avatar, Badge, Segmented } from 'antd'
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelectedLayoutSegment, useRouter } from 'next/navigation'
-import { time } from 'console'
 
 
 export default function Layout(

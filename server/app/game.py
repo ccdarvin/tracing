@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
+from .models import Game, Bet, RelatedGame, save, exists, reload
 from pydantic import ValidationError, HttpUrl
 from redis.commands.search.query import Query
-from .models import Game, Bet, RelatedGame, save, exists
 from datetime import datetime, timezone
 from typing import List
 import json
@@ -17,14 +17,21 @@ async def game_scraping(websocket: WebSocket, scraping: bool):
     except KeyError as e:
         print('No scraping', e)
     else:
-        game = Game(id=id, websiteId=website_id, scraping=scraping, lastScraping=datetime.now(timezone.utc))
+        game = Game(id=id, websiteId=website_id)
+        lastScraping = lastScraping=datetime.now(timezone.utc)
+        if game := await reload(websocket.app.state.redis, game):
+            print(game.relatedKey, scraping, lastScraping)
+            await websocket.app.state.redis.json().set(game.relatedKey, '.scraping', scraping)
+            await websocket.app.state.redis.json().set(game.relatedKey, '.lastScraping', game.lastScraping)
         if not await exists(websocket.app.state.redis, game):
             deleted = True
             await manager.broadcast({
                 'id': game.id,
                 'deleted': deleted,
             })
-        else:    
+        else:
+            game.scraping = scraping
+            game.lastScraping = lastScraping
             await save(websocket.app.state.redis, game)
             await manager.broadcast(game.json(exclude_unset=True))
             print(f'game {game.key()} scraping: {scraping}')
@@ -51,7 +58,6 @@ class ConnectionManager:
 
     async def broadcast(self, message: str|dict):
         for connection in self.active_connections:
-            print(connection.query_params)
             if isinstance(message, dict):
                 await connection.send_json(message)
             else:
@@ -62,7 +68,7 @@ manager = ConnectionManager()
 
 
 @router.websocket('/games/{website_id}')
-async def game_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
+async def game_ws(websocket: WebSocket, website_id: str|None, game_id: HttpUrl|None):
     await manager.connect(websocket)
     r = websocket.app.state.redis
     try:
@@ -89,13 +95,13 @@ async def game_ws(websocket: WebSocket, website_id: str, game_id: HttpUrl):
                     await manager.send_personal_message({'status': 'error', 'message': 'Invalid data', 'errors': e.errors()}, websocket)
                     continue
                 else:
-                    await save(r, bet, 60*60*24*15)
+                    await save(r, bet, 60*60)
                     await manager.broadcast(bet.json(exclude_unset=True))
                     continue
             
             await manager.send_personal_message({'status': 'error', 'message': 'Invalid type'}, websocket)
                     
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect,):
         await manager.disconnect(websocket)
 
 
@@ -127,3 +133,26 @@ async def game_related(
         await r.json().set(key, '.related', True)
         await r.json().set(key, '.scraping', False)
     return related
+
+
+@router.get('/games/related')
+async def game_related_list(
+    request: Request
+):
+    r = request.app.state.redis
+    docs = await r.json().mget(await r.keys('related:*'), '.')
+    return docs
+
+
+@router.get('/games/bets')
+async def game_bets(
+    request: Request
+):
+    r = request.app.state.redis
+    try:
+        bets = await r.json().mget(await r.keys(f'bets:*'), '.')
+    except Exception as e:
+        return []
+    return bets
+
+    
