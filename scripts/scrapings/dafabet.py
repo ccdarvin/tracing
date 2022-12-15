@@ -17,9 +17,7 @@ class Scraping(ScrapingBase):
         print(f'🔗 {url}')
         self.driver.get(url)
         self.driver.implicitly_wait(10)
-        sleep(15)
         urls = []
-        print(self.driver.find_element(By.CSS_SELECTOR, 'html').get_attribute('innerHTML'))
         for elm in self.driver.find_elements(By.CSS_SELECTOR, '.expand .subitems h4.parent a'):
             try:
                 urls.append(elm.get_attribute('href'))
