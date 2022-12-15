@@ -19,6 +19,7 @@ class Scraping(ScrapingBase):
         self.driver.implicitly_wait(10)
         sleep(15)
         urls = []
+        self.driver.save_screenshot('dafabet.png')
         for elm in self.driver.find_elements(By.CSS_SELECTOR, '.expand .subitems h4.parent a'):
             try:
                 urls.append(elm.get_attribute('href'))
