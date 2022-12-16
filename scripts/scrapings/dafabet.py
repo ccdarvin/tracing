@@ -13,7 +13,7 @@ class Scraping(ScrapingBase):
     website_id = 'dafabet.com'
     
     def get_urls(self):
-        url= 'https://www.dafabet.com/es/dfgoal/sports/240-football'
+        url= 'https://www.dafabet.com/dfgoal/sports/240-football'
         print(f'🔗 {url}')
         self.driver.get(url)
         self.driver.implicitly_wait(10)
