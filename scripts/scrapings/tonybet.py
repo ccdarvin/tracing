@@ -10,7 +10,7 @@ class Scraping(ScrapingBase):
     website_id = 'tonybet'
     
     def get_urls(self) -> list[str]:
-        url = 'https://tonybet.com/pe/prematch/football/leagues'
+        url = 'https://tonybet.com/prematch/football/leagues'
         print(f'🔗 {url}')
         self.driver.get(url)
         self.driver.implicitly_wait(20)

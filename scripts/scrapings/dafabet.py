@@ -30,22 +30,24 @@ class Scraping(ScrapingBase):
             print(f'🔗 {url}')
             self.driver.get(url)
             self.driver.implicitly_wait(20)
-            sleep(10)
-            for elm in self.driver.find_elements(By.CSS_SELECTOR, '.event-description'):
-                text = elm.get_attribute('innerText')
-                first = text.split('vs')[0].strip()
-                secound = text.split('vs')[1].strip()
-                game = Game(
-                    id = elm.find_element(By.CSS_SELECTOR, 'a').get_attribute('href'),
-                    websiteId=self.website_id,
-                    urlSource=url,
-                    sport='futbol',
-                    fullName=f'{first} vs {secound}',
-                    firstTeam=first,
-                    secondTeam=secound
-                )
-                self.save_game(game)
-                print(f'✅ {game.__dict__}')
+            try:
+                for elm in self.driver.find_elements(By.CSS_SELECTOR, '.event-description'):
+                    text = elm.get_attribute('innerText')
+                    first = text.split('vs')[0].strip()
+                    secound = text.split('vs')[1].strip()
+                    game = Game(
+                        id = elm.find_element(By.CSS_SELECTOR, 'a').get_attribute('href'),
+                        websiteId=self.website_id,
+                        urlSource=url,
+                        sport='futbol',
+                        fullName=f'{first} vs {secound}',
+                        firstTeam=first,
+                        secondTeam=secound
+                    )
+                    self.save_game(game)
+                    print(f'✅ {game.__dict__}')
+            except Exception as e:
+                print(e)
                 
     def _show_bets_group(self, elm):
         if 'collapsed' in elm.get_attribute('class'):
