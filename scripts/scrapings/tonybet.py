@@ -13,7 +13,7 @@ class Scraping(ScrapingBase):
         url = 'https://tonybet.com/pe/prematch/football/leagues'
         print(f'🔗 {url}')
         self.driver.get(url)
-        self.driver.implicitly_wait(10)
+        self.driver.implicitly_wait(20)
         urls = []
         for elm in self.driver.find_elements(By.CSS_SELECTOR, '.leagues-list-module_itemName__EV6dh'):
             try:

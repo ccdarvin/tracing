@@ -25,7 +25,7 @@ scraping_classes: list[ScrapingBase] = [
 @app.command()
 def games(headless: bool = False):
     for scraping_class in scraping_classes:
-        scraping = scraping_class(headless)
+        scraping = scraping_class()
         try:
             scraping.get_games()
         except Exception as e:

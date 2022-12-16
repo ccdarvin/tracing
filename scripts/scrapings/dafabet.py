@@ -29,7 +29,7 @@ class Scraping(ScrapingBase):
         for url in self.get_urls()[:max_pages]:
             print(f'🔗 {url}')
             self.driver.get(url)
-            self.driver.implicitly_wait(10)
+            self.driver.implicitly_wait(20)
             sleep(10)
             for elm in self.driver.find_elements(By.CSS_SELECTOR, '.event-description'):
                 text = elm.get_attribute('innerText')
