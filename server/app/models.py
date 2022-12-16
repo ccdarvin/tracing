@@ -149,4 +149,4 @@ async def reload(r: Redis, model: RedisModel) -> RedisModel | None:
         data = await r.json().get(key, Path.root_path())
         return model.copy(update=data)
     else:
-        return None
+        return model
