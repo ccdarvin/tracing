@@ -43,6 +43,7 @@ class ScrapingBase:
     def quit(self):
         self.driver.close()
         self.driver.quit()
+        print('Quit driver')
 
     def save_game(self, game: Game):
         save(game, 24*60*60) 
