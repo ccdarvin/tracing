@@ -56,7 +56,7 @@ class ScrapingBase:
     def get_bets(self, url, load=False):
         raise NotImplementedError
     
-    def get_gets_per_period(self, url:str, wait=10):
+    def get_gets_per_period(self, url:str, wait=5):
         """
         Args:
             url (str): _description_

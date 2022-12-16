@@ -49,6 +49,46 @@ export const filterBestBetsState = selector({
         }
       })
       return { ...related, bets }
-    })
+    }).filter((related: any) => Object.keys(related.bets).length > 0)
   }
 })
+
+
+const safeBets = <any>[
+  ['regular_1x2_1', 'regular_doble-oportunidad_X2'],
+]
+
+
+export const filterSafeBetsState = selector({
+  key: 'filterSafeBets',
+  get: ({ get }) => {
+    const bestBets = get(filterBestBetsState)
+    return bestBets.map((relateGame) => {
+      const safe = <any>[]
+      const bets = relateGame.bets
+      safeBets.forEach((safeBet: any) => {
+
+        if ( !safeBet.every((id: string) => bets[id]) ) return
+
+        let total = 0
+        safeBet.forEach((id: string) => {
+          total += bets[id].bet
+        })
+        
+        safe.push(safeBet.map((id: string) => {
+          const betPercent = bets[id].bet / total
+          const profit = (1-betPercent) * bets[id].bet
+          return { id, betPercent, profit, detail: bets[id], safe: profit>0 }
+        }))
+      })
+      return { ...relateGame, safe }
+    }).filter((relateGame: any) => relateGame.safe.length > 0)
+  },
+})
+
+export const getIcon = (url: string) => {
+  console.log(url)
+  const uri = new URL(url)
+  const googleIcon = `https://www.google.com/s2/favicons?domain=${uri.host}&sz=64`
+  return googleIcon
+}

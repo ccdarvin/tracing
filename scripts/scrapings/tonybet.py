@@ -7,10 +7,10 @@ from rich import print
 
 
 class Scraping(ScrapingBase):
-    website_id = 'tonybet'
+    website_id = 'tonybet.com'
     
     def get_urls(self) -> list[str]:
-        url = 'https://tonybet.com/en/prematch/football/leagues'
+        url = 'https://tonybet.com/pe/prematch/football/leagues'
         print(f'🔗 {url}')
         self.driver.get(url)
         self.driver.implicitly_wait(20)
