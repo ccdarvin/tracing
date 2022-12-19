@@ -58,7 +58,7 @@ class Scraping(ScrapingBase):
             # validate
             self._show_bets_group(elm)
                 
-    def get_bets(self, url, load=False, ws=None):
+    def get_bets(self, url, load=False):
         if load:
             self.driver.get(url)
             self.driver.implicitly_wait(10)

@@ -33,6 +33,7 @@ class Game(RedisModel):
     id: str
     websiteId: str
     relatedKey: Optional[str]
+    hasRelated: bool = False
     urlSource: Optional[str]
     sport: Optional[str]
     fullName: Optional[str]

@@ -1,14 +1,16 @@
 from core.models import r, RelatedGame, Game, save
+from redis.commands.search.query import Query
 from scrapings.base import ScrapingBase
 from rich.console import Console
-from multiprocessing import Pool
 from scrapings import tonybet
 from scrapings import dafabet
+from rich.tree import Tree
 from thefuzz import fuzz
 from time import sleep
 from rich import print
 import typer
-from rich.tree import Tree
+import json
+
 
 console = Console()
 
@@ -33,6 +35,7 @@ def games(headless: bool = False):
         
         scraping.quit()
         sleep(30)
+    related()
 
 
 @app.command()
@@ -66,7 +69,9 @@ def related():
                 game = Game(**doc)
                 tree.add(game.key())
                 r.json().set(game.key(), '.relatedKey', related_obj.key())
+                r.json().set(game.key(), '.related', True)
             print(tree)
+    r.close()
 
 
 def scraping_page(doc):
@@ -76,7 +81,7 @@ def scraping_page(doc):
         if scraping_class.check_url(url):
             try:
                 scraping = scraping_class(use_ws_bet=True)
-                scraping.get_gets_per_period(url)
+                scraping.get_bets(url, load=True)
                 scraping.quit()
             except Exception as e:
                 console.print_exception(show_locals=True)
@@ -87,13 +92,11 @@ def scraping_page(doc):
 
 @app.command()
 def bets():
-    keys = r.keys('related:*')
-    docs = r.json().mget(keys, '.')
-    for doc in docs:
-        if doc['scraping']:
-            continue
-        with Pool(doc['count']+1) as p:
-            p.map(scraping_page, doc['related'])
+    
+    docs =  r.ft('idxGames').search(Query('@related:{true}').sort_by('lastScraping').paging(0, 10)).docs
+    r.close()
+    for doc in  docs:
+        scraping_page(json.loads(doc.json))
         
             
 if __name__ == "__main__":

@@ -17,12 +17,7 @@ async def game_scraping(websocket: WebSocket, scraping: bool):
     except KeyError as e:
         print('No scraping', e)
     else:
-        game = Game(id=id, websiteId=website_id)
-        lastScraping = lastScraping=datetime.now(timezone.utc)
-        if game := await reload(websocket.app.state.redis, game):
-            print(game.relatedKey, scraping, lastScraping)
-            await websocket.app.state.redis.json().set(game.relatedKey, '.scraping', scraping)
-            await websocket.app.state.redis.json().set(game.relatedKey, '.lastScraping', game.lastScraping)
+        game = Game(id=id, websiteId=website_id, scraping=scraping, lastScraping=datetime.now(timezone.utc))
         if not await exists(websocket.app.state.redis, game):
             deleted = True
             await manager.broadcast({
@@ -30,8 +25,6 @@ async def game_scraping(websocket: WebSocket, scraping: bool):
                 'deleted': deleted,
             })
         else:
-            game.scraping = scraping
-            game.lastScraping = lastScraping
             await save(websocket.app.state.redis, game)
             await manager.broadcast(game.json(exclude_unset=True))
             print(f'game {game.key()} scraping: {scraping}')
